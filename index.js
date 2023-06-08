@@ -36,7 +36,7 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    const usersCollection = client.db("samuraiDB").collection("users");
+    const usersCollection = client.db("samuraiDB").collection("usersCollection");
     // MongoDB CRUD Operations Here
 
     // Users Related APIs
@@ -52,7 +52,12 @@ async function run() {
       if (existingUser) {
         return res.send({ message: "user already exists in Database" });
       }
+      // !user.role && user.role = 'student'
+      if (!user.role) {
+        user.role = 'student'
+      }
 
+      console.log(user);
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
