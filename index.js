@@ -39,11 +39,14 @@ async function run() {
     const usersCollection = client.db("samuraiDB").collection("usersCollection");
     // MongoDB CRUD Operations Here
 
-    // Users Related APIs
+
+
+    // --------Users Related APIs-------//
     app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
+    // ---Inserting user to db---//
     app.post("/users", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -52,15 +55,28 @@ async function run() {
       if (existingUser) {
         return res.send({ message: "user already exists in Database" });
       }
-      // !user.role && user.role = 'student'
       if (!user.role) {
         user.role = 'student'
       }
-
-      console.log(user);
+      // console.log(user);
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+
+    // ---Getting All Users---//
+    app.get('/users', async (req, res) => {
+      const result = await usersCollection.find().toArray() 
+      res.send(result)
+    })
+
+    
+
+
+
+
+
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
