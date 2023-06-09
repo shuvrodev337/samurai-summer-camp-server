@@ -37,6 +37,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const usersCollection = client.db("samuraiDB").collection("usersCollection");
+    const classesCollection = client.db("samuraiDB").collection("classesCollection");
     // MongoDB CRUD Operations Here
 
 
@@ -58,7 +59,6 @@ async function run() {
       if (!user.role) {
         user.role = 'student'
       }
-      // console.log(user);
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
@@ -68,9 +68,14 @@ async function run() {
       const result = await usersCollection.find().toArray() 
       res.send(result)
     })
+    // // ---Getting  User id---//
+    // app.get('/users/:id', async (req, res) => {
+    //   // const result = await usersCollection.find().toArray() 
+    //   // res.send(result)
+    // })
 
     // ---promoting A User to Instructor---//
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/instructor/:id', async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -84,8 +89,60 @@ async function run() {
       res.send(result);
 
     })
+    // ---promoting A User to Admin--- //
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: 'admin'
+        },
+      };
 
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
 
+    })
+
+    // --------Class Related APIs-------//
+    
+    // ---Add class by Instructor---//
+    app.post("/classes", async (req, res) => {
+      const addedClass = req.body;
+      
+      // TODO make a query in usersCollection to find the _id of the instructor 
+      // then add instructorId field to the class
+      const instructorEmail = addedClass.instructorEmail
+      const query = {email: instructorEmail}
+     const instructor = await usersCollection.findOne(query)
+     if (instructor) {
+      addedClass.instructorId = instructor._id
+     }
+      if (!addedClass.status) {
+        addedClass.status = 'pending'
+      }
+      const result = await classesCollection.insertOne(addedClass);
+      res.send(result);
+    });
+
+    // --- Load Instructor id specific Classes---//
+
+    // app.get("/instructor/classes/:id", async (req, res) => {
+    //   const id = req.params.id
+    //   const query = {instructorId: new ObjectId(id)}
+    //   const result = await classesCollection.find(query).toArray()
+    //   res.send(result);
+    // });
+
+    // --- Load Instructor email specific Classes---//
+
+    app.get("/instructors/classes/:email", async (req, res) => {
+      const email = req.params.email
+      const query = {instructorEmail: email}
+      const result = await classesCollection.find(query).toArray()
+      res.send(result);
+    });
 
 
 
