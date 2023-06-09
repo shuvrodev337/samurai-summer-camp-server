@@ -43,10 +43,7 @@ async function run() {
 
 
     // --------Users Related APIs-------//
-    app.get("/users", async (req, res) => {
-      const result = await usersCollection.find().toArray();
-      res.send(result);
-    });
+    
     // ---Inserting user to db---//
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -68,11 +65,14 @@ async function run() {
       const result = await usersCollection.find().toArray() 
       res.send(result)
     })
-    // // ---Getting  User id---//
-    // app.get('/users/:id', async (req, res) => {
-    //   // const result = await usersCollection.find().toArray() 
-    //   // res.send(result)
-    // })
+    // ---Getting All Instructors---//
+
+    app.get('/instructors', async (req, res) => {
+      const filter = {role: 'instructor'}
+      const result = await usersCollection.find(filter).toArray() 
+      res.send(result)
+    })
+   
 
     // ---promoting A User to Instructor---//
     app.patch('/users/instructor/:id', async (req, res) => {
@@ -110,9 +110,6 @@ async function run() {
     // ---Add class by Instructor---//
     app.post("/classes", async (req, res) => {
       const addedClass = req.body;
-      
-      // TODO make a query in usersCollection to find the _id of the instructor 
-      // then add instructorId field to the class
       const instructorEmail = addedClass.instructorEmail
       const query = {email: instructorEmail}
      const instructor = await usersCollection.findOne(query)
@@ -122,27 +119,23 @@ async function run() {
       if (!addedClass.status) {
         addedClass.status = 'pending'
       }
+      if (!addedClass.enrolledStudents) {
+        addedClass.enrolledStudents = 0
+      }
       const result = await classesCollection.insertOne(addedClass);
       res.send(result);
     });
 
-    // --- Load Instructor id specific Classes---//
-
-    // app.get("/instructor/classes/:id", async (req, res) => {
-    //   const id = req.params.id
-    //   const query = {instructorId: new ObjectId(id)}
-    //   const result = await classesCollection.find(query).toArray()
-    //   res.send(result);
-    // });
 
     // --- Load Instructor email specific Classes---//
 
-    app.get("/instructors/classes/:email", async (req, res) => {
-      const email = req.params.email
+    app.get("/instructors/classes", async (req, res) => {
+      const email = req.query.email
       const query = {instructorEmail: email}
       const result = await classesCollection.find(query).toArray()
       res.send(result);
     });
+    
 
 
 
