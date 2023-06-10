@@ -38,6 +38,7 @@ async function run() {
     await client.connect();
     const usersCollection = client.db("samuraiDB").collection("usersCollection");
     const classesCollection = client.db("samuraiDB").collection("classesCollection");
+    const selectedClassesCollection = client.db("samuraiDB").collection("selectedClassesCollection");
     // MongoDB CRUD Operations Here
 
 
@@ -181,7 +182,6 @@ async function run() {
     });
 
 
-
     // --- Load instructor-email specific Classes---//
 
     app.get("/instructors/classes", async (req, res) => {
@@ -191,7 +191,7 @@ async function run() {
       res.send(result);
     });
     
-//  find the class, with id, then update the feedback field with tha data coming from client-side
+//---find the class, with id, then update the feedback field with tha data coming from client-side---//
 app.patch('/classes/feedback/:id', async (req, res) => {
   const id = req.params.id;
   const feedback = req.body.feedback
@@ -209,6 +209,13 @@ app.patch('/classes/feedback/:id', async (req, res) => {
 
 })
 
+// ----------------------User Selected Classes related APIS---------------------------//
+
+app.post('/users/classes', async (req, res) => {
+  const selectedClass = req.body;
+  const result = await selectedClassesCollection.insertOne(selectedClass);
+  res.send(result);
+})
 
 
 
