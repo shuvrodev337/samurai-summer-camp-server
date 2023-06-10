@@ -213,9 +213,25 @@ app.patch('/classes/feedback/:id', async (req, res) => {
 
 app.post('/users/classes', async (req, res) => {
   const selectedClass = req.body;
+  const email = selectedClass.studentEmail
+  const query =  {email: email}
+  const student = await usersCollection.findOne(query)
+  if (!selectedClass?.studentId) {
+    selectedClass.studentId = student._id
+  }
   const result = await selectedClassesCollection.insertOne(selectedClass);
   res.send(result);
 })
+
+//  ---Load user selected classes--- //
+
+app.get("/users/classes", async (req, res) => {
+  const email = req.query.email
+  const query = {studentEmail: email}
+  const result = await selectedClassesCollection.find(query).toArray()
+  res.send(result);
+});
+
 
 
 
