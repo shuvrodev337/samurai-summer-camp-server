@@ -42,7 +42,7 @@ async function run() {
 
 
 
-    // --------Users Related APIs-------//
+    // -------------Users Related APIs------------//
     
     // ---Inserting user to db---//
     app.post("/users", async (req, res) => {
@@ -65,13 +65,7 @@ async function run() {
       const result = await usersCollection.find().toArray() 
       res.send(result)
     })
-    // ---Getting All Instructors---//
-
-    app.get('/instructors', async (req, res) => {
-      const filter = {role: 'instructor'}
-      const result = await usersCollection.find(filter).toArray() 
-      res.send(result)
-    })
+    
    
 
     // ---promoting A User to Instructor---//
@@ -89,6 +83,16 @@ async function run() {
       res.send(result);
 
     })
+
+    // ---Getting All Instructors---//
+
+    app.get('/instructors', async (req, res) => {
+      const filter = {role: 'instructor'}
+      const result = await usersCollection.find(filter).toArray() 
+      res.send(result)
+    })
+
+
     // ---promoting A User to Admin--- //
     app.patch('/users/admin/:id', async (req, res) => {
       const id = req.params.id;
@@ -105,7 +109,7 @@ async function run() {
 
     })
 
-    // --------Class Related APIs-------//
+    // -------------Class Related APIs------------//
     
     // ---Add class by Instructor---//
     app.post("/classes", async (req, res) => {
@@ -127,7 +131,54 @@ async function run() {
     });
 
 
-    // --- Load Instructor email specific Classes---//
+    //--- Load All Classes ---//
+       app.get("/classes", async (req, res) => {
+      const result = await classesCollection.find().toArray()
+      res.send(result);
+    });
+
+
+    // ---Approve a class---//
+
+   
+    app.patch('/classes/approved/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: 'approved'
+        },
+      };
+
+      const result = await classesCollection.updateOne(filter, updateDoc);
+      res.send(result);
+
+    })
+    // ---Deny a class---//
+
+   
+    app.patch('/classes/denied/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: 'denied'
+        },
+      };
+
+      const result = await classesCollection.updateOne(filter, updateDoc);
+      res.send(result);
+
+    })
+
+    // TODO add an api to Load all approved classes here
+
+
+
+
+    // --- Load instructor-email specific Classes---//
 
     app.get("/instructors/classes", async (req, res) => {
       const email = req.query.email
