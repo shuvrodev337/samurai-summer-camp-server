@@ -173,8 +173,12 @@ async function run() {
 
     })
 
-    // TODO add an api to Load all approved classes here
-
+    //--- Load All Approved Classes ---//
+    app.get("/classes/approved", async (req, res) => {
+      const query = {status: 'approved' }
+      const result = await classesCollection.find(query).toArray()
+      res.send(result);
+    });
 
 
 
