@@ -187,8 +187,23 @@ async function run() {
       res.send(result);
     });
     
+//  find the class, with id, then update the feedback field with tha data coming from client-side
+app.patch('/classes/feedback/:id', async (req, res) => {
+  const id = req.params.id;
+  const feedback = req.body.feedback
+  console.log(id);
+  console.log(req.body);
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      feedback: feedback
+    },
+  };
 
+  const result = await classesCollection.updateOne(filter, updateDoc);
+  res.send(result);
 
+})
 
 
 
