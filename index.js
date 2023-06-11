@@ -103,7 +103,7 @@ app.post('/jwt', (req,res)=>{
    
 
     // ---promoting A User to Instructor---//
-    app.patch('/users/instructor/:id', async (req, res) => {
+    app.patch('/users/instructor/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -128,7 +128,7 @@ app.post('/jwt', (req,res)=>{
 
 
     // ---promoting A User to Admin--- //
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/admin/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -146,7 +146,7 @@ app.post('/jwt', (req,res)=>{
     // -------------Class Related APIs------------//
     
     // ---Add class by Instructor---//
-    app.post("/classes", async (req, res) => {
+    app.post("/classes",verifyJWT, async (req, res) => {
       const addedClass = req.body;
       const instructorEmail = addedClass.instructorEmail
       const query = {email: instructorEmail}
@@ -166,7 +166,7 @@ app.post('/jwt', (req,res)=>{
 
 
     //--- Load All Classes ---//
-       app.get("/classes", async (req, res) => {
+       app.get("/classes",verifyJWT, async (req, res) => {
       const result = await classesCollection.find().toArray()
       res.send(result);
     });
@@ -175,7 +175,7 @@ app.post('/jwt', (req,res)=>{
     // ---Approve a class---//
 
    
-    app.patch('/classes/approved/:id', async (req, res) => {
+    app.patch('/classes/approved/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -192,7 +192,7 @@ app.post('/jwt', (req,res)=>{
     // ---Deny a class---//
 
    
-    app.patch('/classes/denied/:id', async (req, res) => {
+    app.patch('/classes/denied/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -216,7 +216,7 @@ app.post('/jwt', (req,res)=>{
 
 
     // --- Load instructor-email specific Classes---//
-
+   //TODO check verifyJWT is needed in this api
     app.get("/instructors/classes", async (req, res) => {
       const email = req.query.email
       const query = {instructorEmail: email}
@@ -224,8 +224,9 @@ app.post('/jwt', (req,res)=>{
       res.send(result);
     });
     
+    //--- An adminSending feedback to Instructor---//
 //---find the class, with id, then update the feedback field with tha data coming from client-side---//
-app.patch('/classes/feedback/:id', async (req, res) => {
+app.patch('/classes/feedback/:id',verifyJWT, async (req, res) => {
   const id = req.params.id;
   const feedback = req.body.feedback
   console.log(id);
@@ -244,7 +245,9 @@ app.patch('/classes/feedback/:id', async (req, res) => {
 
 // ----------------------User Selected Classes related APIS---------------------------//
 
-app.post('/users/classes', async (req, res) => {
+
+//---student selects a class,then adding to DB---//
+app.post('/users/classes',verifyJWT, async (req, res) => {
   const selectedClass = req.body;
   const email = selectedClass.studentEmail
   const query =  {email: email}
@@ -258,7 +261,7 @@ app.post('/users/classes', async (req, res) => {
 
 //  ---Load user selected classes--- //
 
-app.get("/users/classes", async (req, res) => {
+app.get("/users/classes",verifyJWT, async (req, res) => {
   const email = req.query.email
   const query = {studentEmail: email}
   const result = await selectedClassesCollection.find(query).toArray()
