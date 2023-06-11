@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -40,7 +41,12 @@ async function run() {
     const classesCollection = client.db("samuraiDB").collection("classesCollection");
     const selectedClassesCollection = client.db("samuraiDB").collection("selectedClassesCollection");
     // MongoDB CRUD Operations Here
-
+// jwt apis 
+app.post('/jwt', (req,res)=>{
+  const user = req.body
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn:'1h'})
+  res.send({token})
+})
 
 
     // -------------Users Related APIs------------//
