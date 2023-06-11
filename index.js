@@ -18,6 +18,27 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
+// JWT Verification
+const verifyJWT = (req, res, next) => {
+  console.log('came to verify jwt');
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "Unauthorized Access" });
+  }
+  const token = authorization.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res
+        .status(403)
+        .send({ error: true, message: "Unauthorized Access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
+
 app.get("/", (req, res) => {
   res.send("Hello World! Samurai Server is running!!");
 });
@@ -41,8 +62,12 @@ async function run() {
     const classesCollection = client.db("samuraiDB").collection("classesCollection");
     const selectedClassesCollection = client.db("samuraiDB").collection("selectedClassesCollection");
     // MongoDB CRUD Operations Here
-// jwt apis 
+
+
+
+  // ------------jwt related APIs------------------// 
 app.post('/jwt', (req,res)=>{
+
   const user = req.body
   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn:'1h'})
   res.send({token})
@@ -68,7 +93,9 @@ app.post('/jwt', (req,res)=>{
     });
 
     // ---Getting All Users---//
-    app.get('/users', async (req, res) => {
+    app.get('/users',verifyJWT, async (req, res) => {
+      // console.log(req.decoded?.email);
+
       const result = await usersCollection.find().toArray() 
       res.send(result)
     })
