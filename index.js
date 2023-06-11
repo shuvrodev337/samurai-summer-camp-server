@@ -20,7 +20,7 @@ app.use(express.json());
 
 // JWT Verification
 const verifyJWT = (req, res, next) => {
-  console.log('came to verify jwt');
+  // console.log('came to verify jwt');
   const authorization = req.headers.authorization;
   if (!authorization) {
     return res
@@ -123,7 +123,7 @@ const verifyInstructor = async (req, res, next) => {
       res.send(result);
     });
 
-      // Check if the user is admin or not // api call from isAdmin hook
+      //---Check if the user is admin or not // api call from isAdmin hook---//
   app.get('/users/admin/:email', verifyJWT,async (req,res)=>{
     const email = req.params.email
     // If the user from the token and the user whose admin verification is being checked are not same then,
@@ -137,7 +137,9 @@ const verifyInstructor = async (req, res, next) => {
     res.send(result)
 
   })
-      // Check if the user is Instructor or not // api call from isInstructor hook
+
+
+      //--- Check if the user is Instructor or not // api call from isInstructor hook---//
   app.get('/users/instructor/:email', verifyJWT,async (req,res)=>{
     const email = req.params.email
     // If the user from the token and the user whose instructor verification is being checked are not same then,
@@ -157,9 +159,8 @@ const verifyInstructor = async (req, res, next) => {
 
 
     // ---Getting All Users---//
-    app.get('/users',verifyJWT, async (req, res) => {
-      // console.log(req.decoded?.email);
-
+    app.get('/users',verifyJWT,verifyAdmin, async (req, res) => {
+     
       const result = await usersCollection.find().toArray() 
       res.send(result)
     })
@@ -167,7 +168,7 @@ const verifyInstructor = async (req, res, next) => {
    
 
     // ---promoting A User to Instructor---//
-    app.patch('/users/instructor/:id',verifyJWT, async (req, res) => {
+    app.patch('/users/instructor/:id',verifyJWT,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       // console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -192,7 +193,7 @@ const verifyInstructor = async (req, res, next) => {
 
 
     // ---promoting A User to Admin--- //
-    app.patch('/users/admin/:id',verifyJWT, async (req, res) => {
+    app.patch('/users/admin/:id',verifyJWT,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       // console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -210,7 +211,7 @@ const verifyInstructor = async (req, res, next) => {
     // -------------Class Related APIs------------//
     
     // ---Add class by Instructor---//
-    app.post("/classes",verifyJWT, async (req, res) => {
+    app.post("/classes",verifyJWT,verifyInstructor, async (req, res) => {
       const addedClass = req.body;
       const instructorEmail = addedClass.instructorEmail
       const query = {email: instructorEmail}
@@ -230,7 +231,7 @@ const verifyInstructor = async (req, res, next) => {
 
 
     //--- Load All Classes ---//
-       app.get("/classes",verifyJWT, async (req, res) => {
+       app.get("/classes",verifyJWT,verifyAdmin, async (req, res) => {
       const result = await classesCollection.find().toArray()
       res.send(result);
     });
@@ -239,7 +240,7 @@ const verifyInstructor = async (req, res, next) => {
     // ---Approve a class---//
 
    
-    app.patch('/classes/approved/:id',verifyJWT, async (req, res) => {
+    app.patch('/classes/approved/:id',verifyJWT,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       // console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -256,7 +257,7 @@ const verifyInstructor = async (req, res, next) => {
     // ---Deny a class---//
 
    
-    app.patch('/classes/denied/:id',verifyJWT, async (req, res) => {
+    app.patch('/classes/denied/:id',verifyJWT,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       // console.log(id);
       const filter = { _id: new ObjectId(id) };
@@ -290,11 +291,10 @@ const verifyInstructor = async (req, res, next) => {
     
     //--- An adminSending feedback to Instructor---//
 //---find the class, with id, then update the feedback field with tha data coming from client-side---//
-app.patch('/classes/feedback/:id',verifyJWT, async (req, res) => {
+app.patch('/classes/feedback/:id',verifyJWT,verifyAdmin, async (req, res) => {
   const id = req.params.id;
   const feedback = req.body.feedback
-  // console.log(id);
-  // console.log(req.body);
+
   const filter = { _id: new ObjectId(id) };
   const updateDoc = {
     $set: {
