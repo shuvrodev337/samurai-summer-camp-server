@@ -73,6 +73,37 @@ app.post('/jwt', (req,res)=>{
   res.send({token})
 })
 
+//----------------------------------------------//
+
+//-----------Verify Admin and Verify Instructor-----------------------//
+
+// Middleware: verifyAdmin
+
+const verifyAdmin = async (req, res, next) => {
+  const email = req.decoded.email;
+  const query = { email: email }
+  const user = await usersCollection.findOne(query);
+  if (user?.role !== 'admin') {
+    return res.status(403).send({ error: true, message: 'forbidden message' });
+  }
+  next();
+}
+// Middleware: verifyInstructor
+
+const verifyInstructor = async (req, res, next) => {
+  const email = req.decoded.email;
+  const query = { email: email }
+  const user = await usersCollection.findOne(query);
+  if (user?.role !== 'instructor') {
+    return res.status(403).send({ error: true, message: 'forbidden message' });
+  }
+  next();
+}
+//-------------------------------------------------------------------//
+
+
+
+
 
     // -------------Users Related APIs------------//
     
@@ -92,6 +123,39 @@ app.post('/jwt', (req,res)=>{
       res.send(result);
     });
 
+      // Check if the user is admin or not // api call from isAdmin hook
+  app.get('/users/admin/:email', verifyJWT,async (req,res)=>{
+    const email = req.params.email
+    // If the user from the token and the user whose admin verification is being checked are not same then,
+    if (req.decoded.email !== email) {
+      res.send({admin:false}) 
+    }
+    // If the user from the token and the user whose admin verification is being checked are same
+    const query = {email:email}
+    const user = await usersCollection.findOne(query)
+    const result = {admin:user?.role === 'admin'} // isAdmin e true or false debe
+    res.send(result)
+
+  })
+      // Check if the user is Instructor or not // api call from isInstructor hook
+  app.get('/users/instructor/:email', verifyJWT,async (req,res)=>{
+    const email = req.params.email
+    // If the user from the token and the user whose instructor verification is being checked are not same then,
+    if (req.decoded.email !== email) {
+      res.send({instructor:false}) 
+    }
+    // If the user from the token and the user whose instructor verification is being checked are same
+    const query = {email:email}
+    const user = await usersCollection.findOne(query)
+    const result = {instructor:user?.role === 'instructor'} // isInstructor e true or false debe
+    res.send(result)
+
+  })
+
+
+
+
+
     // ---Getting All Users---//
     app.get('/users',verifyJWT, async (req, res) => {
       // console.log(req.decoded?.email);
@@ -105,7 +169,7 @@ app.post('/jwt', (req,res)=>{
     // ---promoting A User to Instructor---//
     app.patch('/users/instructor/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -130,7 +194,7 @@ app.post('/jwt', (req,res)=>{
     // ---promoting A User to Admin--- //
     app.patch('/users/admin/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -177,7 +241,7 @@ app.post('/jwt', (req,res)=>{
    
     app.patch('/classes/approved/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -194,7 +258,7 @@ app.post('/jwt', (req,res)=>{
    
     app.patch('/classes/denied/:id',verifyJWT, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -229,8 +293,8 @@ app.post('/jwt', (req,res)=>{
 app.patch('/classes/feedback/:id',verifyJWT, async (req, res) => {
   const id = req.params.id;
   const feedback = req.body.feedback
-  console.log(id);
-  console.log(req.body);
+  // console.log(id);
+  // console.log(req.body);
   const filter = { _id: new ObjectId(id) };
   const updateDoc = {
     $set: {
