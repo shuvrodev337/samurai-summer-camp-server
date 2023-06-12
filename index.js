@@ -3,6 +3,7 @@ const app = express();
 require("dotenv").config();
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
+const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY)
 const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -61,6 +62,7 @@ async function run() {
     const usersCollection = client.db("samuraiDB").collection("usersCollection");
     const classesCollection = client.db("samuraiDB").collection("classesCollection");
     const selectedClassesCollection = client.db("samuraiDB").collection("selectedClassesCollection");
+    const paymentCollection = client.db("samuraiDB").collection("payments");
     // MongoDB CRUD Operations Here
 
 
@@ -332,7 +334,34 @@ app.get("/users/classes",verifyJWT, async (req, res) => {
   res.send(result);
 });
 
+// ---------------Payment related Apis ----------------------//
 
+ // create payment intent Api
+ app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+  const { price } = req.body;
+  const amount = parseInt(price * 100);
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: 'inr',
+    payment_method_types: ['card']
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret
+  })
+})
+// Payment api
+app.post('/payments', verifyJWT, async (req, res) => {
+  const payment = req.body;
+  const insertResult = await paymentCollection.insertOne(payment);
+  const id = payment.selectedClassId
+const query = {_id : new ObjectId(id) }
+  // const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
+  // const deleteResult = await cartCollection.deleteMany(query)
+  const deleteResult  = await selectedClassesCollection.deleteOne(query)
+
+  res.send({ insertResult, deleteResult });
+})
 
 
 
