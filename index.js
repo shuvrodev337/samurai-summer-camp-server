@@ -354,6 +354,14 @@ app.get("/users/classes",verifyJWT, async (req, res) => {
   const result = await selectedClassesCollection.find(query).toArray()
   res.send(result);
 });
+//  ---Load user enrolled classes--- //
+
+app.get("/users/enrolledClasses",verifyJWT, async (req, res) => {
+  const email = req.query.email
+  const query = {studentEmail: email}
+  const result = await paymentCollection.find(query).toArray()
+  res.send(result);
+});
 
 // ---------------Payment related Apis ----------------------//
 
