@@ -386,21 +386,50 @@ app.post('/payments', verifyJWT, async (req, res) => {
   const id = payment?.selectedClassId
   const query = {_id : new ObjectId(id) }
   const deleteResult  = await selectedClassesCollection.deleteOne(query)
-  const updatedClass = await classesCollection.updateOne(
-    { _id: ObjectId(id) },
-    { $inc: { availableSeats : -1, enrolledStudents: 1 } },
-    { returnOriginal: false }
-  ); 
+//   const updatedClass = await classesCollection.updateOne(
+//     { _id: ObjectId(id) },
+//     { $inc: { availableSeats : -1, enrolledStudents: 1 } },
+//     // { returnOriginal: false }
+//   ); 
   
-const instructorId = payment?.instructorId
-const updateInstructor  = await usersCollection.updateOne(
-  { _id: ObjectId(instructorId) },
-    { $inc: {  numberOfStudents: 1 } },
-    { returnOriginal: false }
-)
+// const instructorId = payment?.instructorId
+// const updateInstructor  = await usersCollection.updateOne(
+//   { _id: ObjectId(instructorId) },
+//     { $inc: {  numberOfStudents: 1 } },
+//     // { returnOriginal: false }
+// )
 
   res.send({ insertResult, deleteResult });
 })
+// Update class
+
+app.patch('/classes/update/:id',verifyJWT, async (req, res) => {
+  const id = req.params.id;
+  const filter = { instructorId: new ObjectId(id) };
+  const updateDoc = {
+    // $inc: {  enrolledStudents: 1 },
+    $inc: { availableSeats : -1, enrolledStudents: 1 },
+  };
+
+  const result = await classesCollection.updateOne(filter, updateDoc);
+  res.send(result);
+
+})
+
+//Update Instructor
+app.patch('/instructors/update/:id',verifyJWT, async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $inc: { numberOfStudents: 1 },
+  };
+
+  const result = await usersCollection.updateOne(filter, updateDoc);
+  res.send(result);
+
+})
+
+
 
     // ---Load most popular classes---//
 
