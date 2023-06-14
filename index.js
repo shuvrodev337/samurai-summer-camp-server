@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 const cors = require("cors");
+
 const jwt = require('jsonwebtoken');
 const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY)
 const port = process.env.PORT || 3000;
@@ -9,14 +10,16 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 //Middleware
 
-const corsOptions = {
-  origin: "*",
-  credentials: true,
-  optionSuccessStatus: 200,
-};
+// const corsOptions = {
+//   origin: "*",
+  
+//   credentials: true,
+//   optionSuccessStatus: 200,
+ 
+// };
 
-app.use(cors(corsOptions));
-
+// app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 
 // JWT Verification
@@ -58,7 +61,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const usersCollection = client.db("samuraiDB").collection("usersCollection");
     const classesCollection = client.db("samuraiDB").collection("classesCollection");
     const selectedClassesCollection = client.db("samuraiDB").collection("selectedClassesCollection");
@@ -176,9 +179,11 @@ const verifyInstructor = async (req, res, next) => {
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
-          role: 'instructor'
+          role: 'instructor',
+          numberOfStudents: 0
         },
       };
+      
 
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
@@ -282,6 +287,12 @@ const verifyInstructor = async (req, res, next) => {
     });
 
 
+
+
+
+    
+
+
     // --- Load instructor-email specific Classes---//
    //TODO check verifyJWT is needed in this api
     app.get("/instructors/classes", async (req, res) => {
@@ -314,6 +325,7 @@ app.patch('/classes/feedback/:id',verifyJWT,verifyAdmin, async (req, res) => {
 
 //---student selects a class,then adding to DB---//
 app.post('/users/classes',verifyJWT, async (req, res) => {
+  console.log('hitting');
   const selectedClass = req.body;
   const email = selectedClass.studentEmail
   const query =  {email: email}
@@ -324,6 +336,15 @@ app.post('/users/classes',verifyJWT, async (req, res) => {
   const result = await selectedClassesCollection.insertOne(selectedClass);
   res.send(result);
 })
+app.delete('/users/selectedclass/:id',verifyJWT, async (req, res) => {
+  const id = req.params.id
+  const query = { _id: new ObjectId(id) };
+
+  const result = await selectedClassesCollection.deleteOne(query);
+  res.send(result);
+})
+
+
 
 //  ---Load user selected classes--- //
 
@@ -354,19 +375,52 @@ app.get("/users/classes",verifyJWT, async (req, res) => {
 app.post('/payments', verifyJWT, async (req, res) => {
   const payment = req.body;
   const insertResult = await paymentCollection.insertOne(payment);
-  const id = payment.selectedClassId
-const query = {_id : new ObjectId(id) }
-  // const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
-  // const deleteResult = await cartCollection.deleteMany(query)
+  const id = payment?.selectedClassId
+  const query = {_id : new ObjectId(id) }
   const deleteResult  = await selectedClassesCollection.deleteOne(query)
+  const updatedClass = await classesCollection.updateOne(
+    { _id: ObjectId(id) },
+    { $inc: { availableSeats : -1, enrolledStudents: 1 } },
+    { returnOriginal: false }
+  ); 
+  
+const instructorId = payment?.instructorId
+const updateInstructor  = await usersCollection.updateOne(
+  { _id: ObjectId(instructorId) },
+    { $inc: {  numberOfStudents: 1 } },
+    { returnOriginal: false }
+)
 
   res.send({ insertResult, deleteResult });
 })
 
+    // ---Load most popular classes---//
+
+    app.get("/classes/popular", async (req, res) => {
+ 
+      const query = {enrolledStudents: -1}
+      const result = await classesCollection.find().sort(query).limit(6).toArray()
+
+      
+      res.send(result);
+});
+    // ---Load most popular Instructors---//
+
+    app.get("/instructors/popular", async (req, res) => {
+
+      const query = {numberOfStudents: -1}
+      const result = await usersCollection.find().sort(query).limit(6).toArray()
+
+      
+      res.send(result);
+});
+
+
+
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
