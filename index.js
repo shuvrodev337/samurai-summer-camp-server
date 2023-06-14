@@ -332,7 +332,6 @@ app.patch('/classes/feedback/:id',verifyJWT,verifyAdmin, async (req, res) => {
 
 //---student selects a class,then adding to DB---//
 app.post('/users/classes',verifyJWT, async (req, res) => {
-  console.log('hitting');
   const selectedClass = req.body;
   const email = selectedClass.studentEmail
   const query =  {email: email}
