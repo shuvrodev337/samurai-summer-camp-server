@@ -66,6 +66,7 @@ async function run() {
     const classesCollection = client.db("samuraiDB").collection("classesCollection");
     const selectedClassesCollection = client.db("samuraiDB").collection("selectedClassesCollection");
     const paymentCollection = client.db("samuraiDB").collection("payments");
+    const marttialArtsCollection = client.db("samuraiDB").collection("martialArts");
     // MongoDB CRUD Operations Here
 
 
@@ -167,6 +168,12 @@ const verifyInstructor = async (req, res, next) => {
     app.get('/users',verifyJWT,verifyAdmin, async (req, res) => {
      
       const result = await usersCollection.find().toArray() 
+      res.send(result)
+    })
+    //Getting All martial arts
+    app.get('/martialArts', async (req, res) => {
+     
+      const result = await marttialArtsCollection.find().toArray() 
       res.send(result)
     })
     
@@ -369,7 +376,7 @@ app.delete("/users/selectedclass/:id",verifyJWT, async (req, res) => {
 app.get("/users/enrolledClasses",verifyJWT, async (req, res) => {
   const email = req.query.email
   const query = {studentEmail: email}
-  const result = await paymentCollection.find(query).toArray()
+  const result = await paymentCollection.find(query).sort({ date: -1 }).toArray()
   res.send(result);
 });
 
