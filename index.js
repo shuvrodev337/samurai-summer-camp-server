@@ -354,6 +354,16 @@ app.get("/users/classes",verifyJWT, async (req, res) => {
   const result = await selectedClassesCollection.find(query).toArray()
   res.send(result);
 });
+// Delete a selected class
+
+// /users/selectedclass/${_id}
+app.delete("/users/selectedclass/:id",verifyJWT, async (req, res) => {
+  const id = req.params.id
+  const query = {_id: new ObjectId(id)}
+  const result = await selectedClassesCollection.deleteOne(query).
+  res.send(result);
+});
+
 //  ---Load user enrolled classes--- //
 
 app.get("/users/enrolledClasses",verifyJWT, async (req, res) => {
