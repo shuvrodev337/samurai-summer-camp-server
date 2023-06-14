@@ -130,8 +130,8 @@ const verifyInstructor = async (req, res, next) => {
     });
 
       //---Check if the user is admin or not // api call from isAdmin hook---//
-  app.get('/users/admin/:email', verifyJWT,async (req,res)=>{
-    const email = req.params.email
+  app.get('/users/admin', verifyJWT,async (req,res)=>{
+    const email = req.query.email
     // If the user from the token and the user whose admin verification is being checked are not same then,
     if (req.decoded.email !== email) {
       res.send({admin:false}) 
@@ -146,8 +146,8 @@ const verifyInstructor = async (req, res, next) => {
 
 
       //--- Check if the user is Instructor or not // api call from isInstructor hook---//
-  app.get('/users/instructor/:email', verifyJWT,async (req,res)=>{
-    const email = req.params.email
+  app.get('/users/instructor', verifyJWT,async (req,res)=>{
+    const email = req.query.email
     // If the user from the token and the user whose instructor verification is being checked are not same then,
     if (req.decoded.email !== email) {
       res.send({instructor:false}) 
