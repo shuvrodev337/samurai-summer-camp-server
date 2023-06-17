@@ -421,7 +421,7 @@ app.post('/payments', verifyJWT, async (req, res) => {
 
 app.patch('/classes/update/:id',verifyJWT, async (req, res) => {
   const id = req.params.id;
-  const filter = { instructorId: new ObjectId(id) };
+  const filter = { _id: new ObjectId(id) };
   const updateDoc = {
     // $inc: {  enrolledStudents: 1 },
     $inc: { availableSeats : -1, enrolledStudents: 1 },
