@@ -67,6 +67,7 @@ async function run() {
     const selectedClassesCollection = client.db("samuraiDB").collection("selectedClassesCollection");
     const paymentCollection = client.db("samuraiDB").collection("payments");
     const marttialArtsCollection = client.db("samuraiDB").collection("martialArts");
+    const userFeedbackCollection = client.db("samuraiDB").collection("userFeedbackCollection");
     // MongoDB CRUD Operations Here
 
 
@@ -170,13 +171,20 @@ const verifyInstructor = async (req, res, next) => {
       const result = await usersCollection.find().toArray() 
       res.send(result)
     })
+
     //Getting All martial arts
     app.get('/martialArts', async (req, res) => {
      
       const result = await marttialArtsCollection.find().toArray() 
       res.send(result)
     })
-    
+      // ---Getting All Instructors---//
+
+      app.get('/instructors', async (req, res) => {
+        const filter = {role: 'instructor'}
+        const result = await usersCollection.find(filter).toArray() 
+        res.send(result)
+      })
    
 
     // ---promoting A User to Instructor---//
@@ -196,15 +204,6 @@ const verifyInstructor = async (req, res, next) => {
       res.send(result);
 
     })
-
-    // ---Getting All Instructors---//
-
-    app.get('/instructors', async (req, res) => {
-      const filter = {role: 'instructor'}
-      const result = await usersCollection.find(filter).toArray() 
-      res.send(result)
-    })
-
 
     // ---promoting A User to Admin--- //
     app.patch('/users/admin/:id',verifyJWT,verifyAdmin, async (req, res) => {
@@ -301,6 +300,8 @@ const verifyInstructor = async (req, res, next) => {
 
 
     // --- Load instructor-email specific Classes---//
+
+
    //TODO check verifyJWT is needed in this api
     app.get("/instructors/classes", async (req, res) => {
       const email = req.query.email
@@ -432,7 +433,7 @@ app.patch('/classes/update/:id',verifyJWT, async (req, res) => {
 
 })
 
-//Update Instructor
+// Update Instructor
 app.patch('/instructors/update/:id',verifyJWT, async (req, res) => {
   const id = req.params.id;
   const filter = { _id: new ObjectId(id) };
@@ -468,8 +469,46 @@ app.patch('/instructors/update/:id',verifyJWT, async (req, res) => {
       res.send(result);
 });
 
+// ------User Feedback------------//
 
+// Send Feedback 
+app.post('/users/feedbacks', async (req,res)=>{
+const feedback = req.body
+if (!feedback.status) {
+    feedback.status === 'pending'
+}
+const result = await userFeedbackCollection.insertOne(feedback)
+res.send(result)
+})
+// Get All Feedbacks 
+app.get('/admin/all-feedbacks',verifyJWT,verifyAdmin, async (req,res)=>{
+  
+const result = await userFeedbackCollection.find().toArray()
+res.send(result)
+})
+// Get Approved Feedbacks 
+app.get('/users/feedbacks', async (req,res)=>{
+  const query = {status: 'approved' }
+const result = await userFeedbackCollection.find(query).toArray()
+res.send(result)
+})
+// ---Approve a Feedback---//
 
+   
+app.patch('/feedbacks/approved/:id',verifyJWT,verifyAdmin, async (req, res) => {
+  const id = req.params.id;
+  // console.log(id);
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      status: 'approved'
+    },
+  };
+
+  const result = await userFeedbackCollection.updateOne(filter, updateDoc);
+  res.send(result);
+
+})
 
 
     // Send a ping to confirm a successful connection
